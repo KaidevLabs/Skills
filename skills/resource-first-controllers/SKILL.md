@@ -1,37 +1,68 @@
 ---
 name: resource-first-controllers
-description: Design Laravel HTTP controllers around resource actions and explicit routing. Use when adding or refactoring Laravel controllers, routes, or CRUD workflows; not applicable to non-Laravel frameworks.
+description: Enforces resource-first controller design in Laravel. Apply whenever creating, modifying, or reviewing controllers, defining routes, or planning new features that involve HTTP endpoints.
 ---
 
-# Resource-first controllers (Laravel)
+# Resource-First Controller Design
 
-Apply this skill only to Laravel applications. Start from the resource and its lifecycle, then use Laravel's conventional resource actions and routes. Follow the consumer repository's Laravel version, architecture, authorization, response, and testing conventions.
+## Core Principle
 
-## Prefer conventional resource actions
+Every controller is a **resource** until proven otherwise. Before writing any controller, ask: **"Can this be modeled as a resource?"**
 
-Use the seven conventional actions when they match the HTTP contract:
+## Decision Flow
 
-| Action | Typical purpose |
-| --- | --- |
-| `index` | List or search resources |
-| `create` | Show a creation form when the application has server-rendered forms |
-| `store` | Validate and create a resource |
-| `show` | Display one resource |
-| `edit` | Show an edit form when applicable |
-| `update` | Validate and update a resource |
-| `destroy` | Delete or archive a resource |
+1. **Identify the noun** (the thing being acted upon). If you can name a resource, use a resource controller.
+2. **Map actions to the 7 standard methods**:
+   - `index` → list
+   - `create` → show creation form
+   - `store` → persist new
+   - `show` → display one
+   - `edit` → show edit form
+   - `update` → persist changes
+   - `destroy` → delete
+3. **Partial resources are encouraged** (1–7 methods). Use `Route::resource(...)->only([...])` or `->except([...])`.
+4. **Invokable controllers are a LAST RESORT** — only when the action genuinely cannot map to any standard method (e.g., `GenerateMonthlyReportController`, `ExchangeOAuthTokenController`).
 
-Declare routes with `Route::resource` or `Route::apiResource` when their generated contract fits. Limit generated actions with `only` or `except` when necessary. Match the project's established route naming, model binding, authorization, and response patterns.
+## Hard Rules (do not violate)
 
-## Handle non-CRUD behavior deliberately
+- ❌ **No custom methods on resource controllers.** A controller either has only resource methods, or it is invokable.
+- ❌ **No mixed controllers.** If you feel tempted to add `publish()`, `archive()`, `approve()` → that's a new resource (`PublishedPostController@store`, `PostArchiveController@store`, etc.).
+- ❌ **No grab-bag controllers** (e.g., `UserController` with `profile()`, `settings()`, `avatar()`). Split into `UserProfileController`, `UserSettingsController`, `UserAvatarController`.
+- ✅ **Nested resources** are preferred over custom methods: `Route::resource('posts.comments', ...)`.
+- ✅ **State changes are resources too**: subscribing = `SubscriptionController@store`, unsubscribing = `SubscriptionController@destroy`.
 
-Before adding a custom controller method, ask whether the operation is a resource lifecycle action, a separate resource, or a focused application action. Prefer a named route and dedicated invokable controller for a single distinct action, or a separate resource/controller when the operation has its own lifecycle. Avoid action-heavy controllers, ambiguous verbs, and methods that combine unrelated responsibilities.
+## Reframing Patterns (use these)
 
-Do not force the seven-action pattern when it obscures a clear domain action or conflicts with an established API contract. Keep validation, authorization, persistence, and response responsibilities aligned with the application's existing boundaries; the controller should coordinate rather than become a repository-specific grab bag.
+| Tempting custom method    | Resource-first refactor                                       |
+| ------------------------- | ------------------------------------------------------------- |
+| `PostController@publish`  | `PublishedPostController@store`                               |
+| `UserController@activate` | `ActiveUserController@store`                                  |
+| `OrderController@cancel`  | `OrderController@destroy` or `CancelledOrderController@store` |
+| `AuthController@login`    | `SessionController@store`                                     |
+| `AuthController@logout`   | `SessionController@destroy`                                   |
+| `UserController@search`   | `UserController@index` (filter via query params)              |
 
-## Before changing routes
+## When Invokable Is Acceptable
 
-- Inspect route registration, route names, middleware, implicit bindings, and callers.
-- Preserve externally consumed URLs and response shapes unless the specification explicitly changes them.
-- Check for route collisions and authorization coverage.
-- Use the application's documented test and formatting commands. Do not assume a particular project path, shell wrapper, database, or test framework.
+Only when ALL of these are true:
+
+- The action does not create/read/update/delete an identifiable resource.
+- It cannot be reframed as a state-resource without contortion.
+- Examples: webhooks (`StripeWebhookController`), one-off jobs (`RecalculateRankingsController`), pure RPC integrations.
+
+## Required Workflow For The Assistant
+
+When the user asks for any controller or endpoint:
+
+1. **State the resource** you've identified.
+2. **List which of the 7 methods** apply, and which are excluded.
+3. **Generate the artisan command**: `php artisan make:controller {Name}Controller --resource --model={Model}`.
+4. **Generate the route** using `Route::resource(...)` (with `->only(...)` if partial).
+5. If proposing an invokable controller, **explicitly justify** why none of the 7 methods fit.
+
+## Self-Check Before Returning Code
+
+- [ ] Does this controller have ONLY resource methods, OR is it `__invoke`?
+- [ ] Did I avoid adding `publish/approve/toggle/etc.` as a method?
+- [ ] If I used invokable, did I justify why no resource framing works?
+- [ ] Are routes declared with `Route::resource` / `Route::apiResource` (not individual `Route::get/post`)?
