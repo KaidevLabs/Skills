@@ -1,26 +1,33 @@
 ---
 name: tdd
-description: Implement behavior through small red/green vertical slices at meaningful test seams, with a test that proves the behavior before production code. Use when changing behavior and the repository has an applicable automated test setup.
+description: Red-green-refactor execution loop for behavior-changing code — use when executing a step Task that declares Seams under test, or when building a feature or fixing a bug test-first. Laravel projects using Sail.
 ---
 
-# Test-driven development
+# Test-Driven Development
 
-Use the target repository's documented test framework, conventions, and commands. Read its contribution and testing guidance before starting. This skill describes the development loop; repository rules determine exact paths, fixtures, commands, and test layers.
+TDD is the red → green loop: one failing test, then only the code that makes it pass, repeated in vertical slices. This skill disciplines the loop so it produces tests worth keeping; what a good *test* is (assertion quality, AAA, naming, isolation) lives in the repo's `.ai/guidelines/coding_style.md` and `.ai/guidelines/testing.md` and the `pest-testing` skill — consult them, don't restate them here.
 
-## Red/green loop
+## Seams
 
-1. Identify the behavior and the narrowest public or architectural seam that exposes it. Prefer a test at the layer where a consumer observes the behavior.
-2. Write one failing test for a concrete, externally meaningful requirement or failure case. Run it and confirm it fails for the intended reason, not due to setup or a syntax error.
-3. Make the smallest production change that makes that test pass. Do not add speculative abstractions or unrelated cleanup in the loop.
-4. Run the focused test again. If it passes, add the next behavior as another failing test and repeat.
-5. Once the required behaviors pass, run the broader relevant suite and the repository's required static checks. Refactor only after a green state, keeping the suite green.
-6. Report the exact commands and results, including checks that were unavailable or blocked.
+A **seam** is a public boundary where behavior is observable: the interface you test through without reaching inside. Tests live at seams, never against internals.
 
-## Test quality
+- Seams are **declared in the step Task body** (`Seams under test`) and confirmed at owner review. No test is written at an undeclared seam — that is how testing effort lands on the critical paths and the complex logic, not on every edge case.
+- If a seam turns out to be wrong or missing mid-step, stop and confirm with the owner — it is a plan deviation, not an executor decision.
 
-- Assert behavior at a stable seam rather than private implementation details, incidental query counts, or exact internal call sequences unless they are part of the contract.
-- Make each test fail when the behavior is absent or wrong. Avoid tautological assertions, tests that merely restate the implementation, and excessive mocking that prevents the behavior from running.
-- Cover meaningful boundaries, invalid input, authorization, and failure handling when required by the specification; avoid duplicating the same assertion at every layer.
-- Use the application's established factories, fixtures, and helpers. Do not introduce project-specific test structure or commands as universal rules.
+## Rules of the loop
 
-If a behavior cannot be tested automatically in the project's available setup, explain the gap and use the closest reliable verification method without describing it as a passing automated test.
+- **Red before green.** Write the failing test first, then only enough implementation to pass it. Don't anticipate future tests or add speculative features.
+- **One slice at a time.** One seam, one test, one minimal implementation per cycle, each a tracer bullet that responds to what the last cycle taught you.
+- **Refactoring is not part of the loop.** It belongs to review, after the step's behavior is green.
+
+## Anti-patterns
+
+- **Implementation-coupled:** mocks internal collaborators, tests private methods, or verifies through a side channel. The tell: the test breaks on a refactor that changes no behavior.
+- **Tautological:** the assertion recomputes the expected value the way the code does, so it passes by construction. Expected values come from an independent source of truth: a known-good literal, a worked example, the spec.
+- **Horizontal slicing:** all tests first, then all implementation. Bulk tests verify imagined behavior. Work vertical instead: one test → one implementation → repeat.
+
+## Rhythm
+
+- During the loop: run the single test file after every cycle (`vendor/bin/sail artisan test --compact --parallel tests/Feature/XTest.php`).
+- At step close: the step Task's full verification, then Duster — per the `plans` skill.
+- Close runs on the owner's stage signal: commit the step's code `(#NN)` when it has one (verification-only → `Commit: none — verification-only`) → as-built resolution comment on the Task → Task Done. No mid-step commits; the loop's work stays unstaged until review.
