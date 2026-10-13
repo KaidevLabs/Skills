@@ -1,32 +1,22 @@
 ---
 name: eureka
-description: Discover and settle a change's requirements before implementation planning. Use when the goal, constraints, current behavior, or design decisions are still unclear and a reliable specification must be produced.
+description: Discovery protocol for analyzing a problem with the owner before planning or code — use when starting a new feature, bug, or problem that needs decisions settled, or before an Epic is planned.
 ---
 
-# Eureka: discovery before planning
+# Eureka
 
-Use this skill to turn an initial idea into an evidence-backed, reviewable specification. Do not jump to implementation or a task breakdown while important decisions are unresolved.
+The discovery phase — analyzing a problem with the owner before any plan or work. Use whenever a problem is big or ambiguous enough that deciding wrong costs a session, and always before an Epic is planned.
 
-## Discovery protocol
+## Protocol
 
-1. **Understand the outcome.** Restate the desired user or system outcome and why it matters. Separate the stated goal from assumptions.
-2. **Gather evidence.** Inspect relevant source, existing documentation, tests, issues, and runtime behavior available in the repository. Cite exact paths, symbols, outputs, or links. Distinguish observed facts from inference.
-3. **Map the current behavior.** Trace the end-to-end path that the request affects, including callers, persistence, interfaces, integrations, and failure cases as relevant. Identify constraints and adjacent behavior that must remain stable.
-4. **Resolve decisions with the owner.** Ask one focused question at a time, ordered by impact and dependency. Offer concrete options when useful. Challenge a choice respectfully when evidence suggests it conflicts with the goal, creates avoidable complexity, or leaves an important failure mode undefined. Do not silently decide product behavior for the owner.
-5. **Track uncertainty.** Keep a short list of settled decisions, open questions, assumptions, and out-of-scope items. Remove a question only when the owner or evidence resolves it. Explain which downstream work depends on an open answer.
-6. **Define completion.** Turn the agreed behavior into observable, verifiable acceptance criteria, including meaningful edge and failure cases. Avoid vague criteria such as "works correctly".
-7. **Hand off to planning.** Once scope is sufficiently settled, produce a concise specification that can be divided into ordered, bounded implementation steps. For Kaidev's shared issue workflow, use the `plans` skill and [GitHub tracker guideline](../../guidelines/tracker-github.md).
+- Evidence before questions: verify the current state with evidence first — grep, DB, tests, logs. Only ask what the evidence cannot answer. Every current-state claim in the resulting Epic carries its evidence.
+- One question at a time. The owner decides; the agent never stands in for the owner's side of the exchange — an agent that answers its own questions has broken the protocol.
+- Grill before settling: challenge every decision before it lands in the do-not-revisit table — what does it complicate, what does it rule out, what would prove it wrong. Settled is do-not-revisit; pre-settle is the last cheap place to be wrong out loud.
+- Record settled decisions immediately: each one lands in the Epic's **Settled decisions** table (`A# | decision | rationale | date`), marked "do not revisit" — recorded at once in the draft while discovery runs, via issue-body edits (API writes) once the Epic is published. A decision without its rationale is an invitation to relitigate.
+- Track what is not yet specifiable: questions you can tell are coming but cannot yet state sharply go to **Not yet specified**. The test is whether the question is sharp, not whether it is answerable — sharp questions become steps, the rest waits.
+- Close with **Out of scope** (work ruled beyond the goal — scope, not sharpness, lands it there) and a **Definition of done** checklist whose items are verifiable.
+- Close the branches before stopping: for every settled decision, one level out — what hangs on it. Each branch must end recorded: settled (the Epic's Settled decisions table), asked in the session, parked deliberately as a sharp open question (a line in the Epic's **Open branches**), or fog (**Not yet specified**). An opened branch may not silently evaporate — "the way is clear" is something the owner can verify at Epic review, not an agent assertion.
 
-## Output
+## Close
 
-Present the result in this order:
-
-1. Goal and user impact.
-2. Current behavior and evidence.
-3. Settled decisions with rationale.
-4. Proposed behavior and acceptance criteria.
-5. Open questions and assumptions, if any.
-6. Out of scope and compatibility constraints.
-7. Risks, dependencies, and likely verification seams.
-
-If essential decisions remain open, say what is blocked and ask the next single question. Do not present the specification as settled or create implementation Tasks prematurely.
+Stop when the way is clear — the discovery closes by drafting the **Epic body** (Goal, Settled decisions, Current state, Definition of done, Not yet specified, Out of scope; plus **Open branches** when sharp questions are deliberately parked). Execution work hands the draft to planning (the `plans` skill) to add the execution order, the executor rules, and the step Tasks with their wiring, per the tracker doc. Design-only efforts — decisions, no code — publish as a single Epic with no step Tasks; the owner's ratification closes it SETTLED. The pull to start doing the work is the signal the discovery is done.
