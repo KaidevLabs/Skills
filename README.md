@@ -45,8 +45,14 @@ Reusable AI agent skills and working guidelines for KaidevLabs repositories. Thi
 
 ## Guidelines
 
+- [Coding style](guidelines/coding-style.md): PHP/Laravel house standards — imports, architecture, model structure, senior practices, and test conventions.
+- [Testing](guidelines/testing.md): how tests are executed in Sail projects, plus shared test-organization conventions.
+- [Duster](guidelines/duster.md): the formatting workflow — Duster wraps Pint; never run Pint directly.
 - [Agent delegation](guidelines/agents.md): boundaries for sub-agents and orchestration ownership.
 - [Scratch files](guidelines/scratch.md): where temporary work belongs and how to clean it up.
+- [Browser tests](guidelines/browser.md): pest-plugin-browser conventions and Playwright pitfalls.
+
+Note: the `pest`, `php`, and `enforce-tests` guideline files seen in projects are generated automatically by `laravel boost install` in each repository (adapted to that project's detected tooling) — they are intentionally not maintained here.
 
 The [plans](skills/plans/SKILL.md) skill carries its own [GitHub tracker doc](skills/plans/tracker-github.md) — the shared Epic, Task, dependency, and project-board conventions it and other skills reference — inside its skill folder.
 

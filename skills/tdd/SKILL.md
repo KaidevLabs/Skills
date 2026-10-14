@@ -5,7 +5,7 @@ description: Red-green-refactor execution loop for behavior-changing code — us
 
 # Test-Driven Development
 
-TDD is the red → green loop: one failing test, then only the code that makes it pass, repeated in vertical slices. This skill disciplines the loop so it produces tests worth keeping; what a good *test* is (assertion quality, AAA, naming, isolation) lives in the repo's `.ai/guidelines/coding_style.md` and `.ai/guidelines/testing.md` and the `pest-testing` skill — consult them, don't restate them here.
+TDD is the red → green loop: one failing test, then only the code that makes it pass, repeated in vertical slices. This skill disciplines the loop so it produces tests worth keeping; what a good *test* is (assertion quality, AAA, naming, isolation) lives in the repo's guideline docs (`guidelines/coding-style.md`, `guidelines/testing.md`) and the `pest-testing` skill where the repository ships it — consult them, don't restate them here.
 
 ## Seams
 
