@@ -25,7 +25,7 @@ Find and prove vulnerabilities. Do not fix anything.
   `vendor/bin/sail shell -c 'DB_DATABASE=sec_<n> php vendor/bin/phpunit tests/Security/V<n>-<slug>Test.php'` (phpunit.xml sets `DB_DATABASE` without `force`, so the env var wins).
 - `tests/Security` sits outside the default Feature suite (`./tests/Feature/*`), so the audit suite never disturbs the main suite and vice versa.
 - Fake everything external: `Http::fake()`, `Mail::fake()`, `Notification::fake()`, `Bus::fake()`, `fake()`. Prove the app's logic is exploitable; do not burn third-party quota.
-- Project test conventions apply: `fake()` helper, capture the created id from the HTTP response (MySQL `created_at` is second-granular — do not `latest()` a just-created row), `makeUserSubscribed` for subscription gating.
+- Project test conventions apply: the `fake()` helper, capture the created id from the HTTP response (MySQL `created_at` is second-granular — do not `latest()` a just-created row), and the repository's own auth/subscription-gating helpers where they exist.
 - Scratch goes in `.tmp/`.
 - If a fresh test run mass-fails right after `migrate:fresh`, re-run before chasing — the testing DB corrupts intermittently.
 - Duster runs on the new test files only (new files, not the repo) before the audit closes.
