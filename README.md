@@ -45,14 +45,15 @@ Reusable AI agent skills and working guidelines for KaidevLabs repositories. Thi
 
 ## Guidelines
 
-- [GitHub tracker](guidelines/tracker-github.md): shared Epic, Task, dependency, and project-board conventions.
 - [Agent delegation](guidelines/agents.md): boundaries for sub-agents and orchestration ownership.
 - [Scratch files](guidelines/scratch.md): where temporary work belongs and how to clean it up.
+
+The [plans](skills/plans/SKILL.md) skill carries its own [GitHub tracker doc](skills/plans/tracker-github.md) — the shared Epic, Task, dependency, and project-board conventions it and other skills reference — inside its skill folder.
 
 ## Copy skills into a project
 
 1. Choose the skill folders relevant to the work. Copy each selected `skills/<name>/` directory into the consumer repository's established agent-skills location (for example, `.ai/skills/` or `.agents/skills/`). Keep the skill folder name and `SKILL.md` filename intact.
-2. Copy only the referenced shared guidelines needed by those skills into the consumer's documentation location, or retain them in a shared, readable location. `plans` requires the GitHub tracker guideline; orchestration and review use the agent-delegation guideline; scratch-file advice is optional unless referenced by local conventions.
+2. Skills carry their companion docs inside their own folder: `plans` includes the GitHub tracker doc, which `plans` and `security-review` reference relatively — copy it together with the skill folder. Copy the shared guidelines under `guidelines/` that the copied skills reference (orchestration and review use the agent-delegation guideline; scratch-file advice is optional unless referenced by local conventions).
 3. Review each `SKILL.md` against the target repository. Follow that repository's own architecture, commands, test instructions, terminology, and documented standards. Skills intentionally do not prescribe project paths or test commands.
 4. Commit the copied files with the project's normal workflow. To refresh later, compare the selected folders with this repository and copy updates deliberately.
 

@@ -5,7 +5,7 @@ description: Plan lifecycle on GitHub — publishing an Epic with its step Task 
 
 # Plans
 
-A plan is an **Epic issue** on the project board; every plan step is a **Task sub-issue** of its Epic, wired with native `blocked_by` dependency edges. The board is the only planning surface. The conventions — board resolution, Epic and Task body anatomy, gh recipes, linking, the as-built comment, execution mechanics — are authoritative in the tracker doc `.ai/skills/plans/tracker-github.md`; this skill is the lifecycle over that model. The tracker doc records no ids: run its resolution block once per session before any board write.
+A plan is an **Epic issue** on the project board; every plan step is a **Task sub-issue** of its Epic, wired with native `blocked_by` dependency edges. The board is the only planning surface. The conventions — board resolution, Epic and Task body anatomy, gh recipes, linking, the as-built comment, execution mechanics — are authoritative in the [tracker doc](tracker-github.md) shipped next to this skill; this skill is the lifecycle over that model. The tracker doc records no ids: run its resolution block once per session before any board write.
 
 Lifecycle: **Eureka** (discover) → **Planning** (publish the Epic and its step Tasks) → **Executing** (one step at a time) → **Epic close** (close-step Task → PR → merge). One Epic per feature/issue/bug.
 
