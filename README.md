@@ -68,3 +68,7 @@ Do not copy every skill by default: Laravel guidance applies only to Laravel rep
 ## Source and maintenance
 
 These documents are maintained for KaidevLabs and are adapted from existing team practices. Improvements should remain reusable across repositories: avoid project-specific identifiers, paths, branches, secrets, or commands unless clearly marked as examples.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
