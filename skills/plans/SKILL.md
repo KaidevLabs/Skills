@@ -1,11 +1,11 @@
 ---
 name: plans
-description: Plan lifecycle on GitHub — publishing an Epic with its step Task sub-issues, executing a step (`Execute #NN`), closing a step or an Epic. Use whenever Epics, Task sub-issues, or plan steps on the board are created, executed, or closed. Laravel projects using Sail.
+description: Plan lifecycle on GitHub — publishing an Epic with its step Task sub-issues, executing a step (`Execute #NN`), closing a step or an Epic. Use whenever Epics, Task sub-issues, or plan steps on the board are created, executed, or closed.
 ---
 
 # Plans
 
-A plan is an **Epic issue** on the project board; every plan step is a **Task sub-issue** of its Epic, wired with native `blocked_by` dependency edges. The board is the only planning surface. The conventions — board resolution, Epic and Task body anatomy, gh recipes, linking, the as-built comment, execution mechanics — are authoritative in the [tracker doc](tracker-github.md) shipped next to this skill; this skill is the lifecycle over that model. The tracker doc records no ids: run its resolution block once per session before any board write.
+A plan is an **Epic issue** on the project board; every plan step is a **Task sub-issue** of its Epic, wired with native `blocked_by` dependency edges. The board is the only planning surface. The conventions — board resolution, Epic and Task body anatomy, gh recipes, linking, the as-built comment, execution mechanics — are authoritative in the tracker doc `tracker-github.md` (beside this skill); this skill is the lifecycle over that model. The tracker doc records no ids: run its resolution block once per session before any board write.
 
 Lifecycle: **Eureka** (discover) → **Planning** (publish the Epic and its step Tasks) → **Executing** (one step at a time) → **Epic close** (close-step Task → PR → merge). One Epic per feature/issue/bug.
 
@@ -15,7 +15,7 @@ Run the Eureka protocol (the `eureka` skill). Its output is the Epic's Goal, Set
 
 ## Planning
 
-1. Draft the Epic body and one Task body per step — Parent, Spec ("not touched in this step" for everything adjacent), Verification, Seams under test for behavior-changing steps, Blocked by.
+1. Draft the Epic body and one Task body per step — Parent, Spec ("not touched in this step" for everything adjacent), Verification, Seams under test for behavior-changing steps, Blocked by. Every step rests on a row of the Epic's Settled decisions table or an explicit owner instruction; a step built on a `proposed` row is flagged as provisional, so the owner can drop or improve it at review.
 2. Publish: create the Epic (typed Epic), then each Task (typed Task), wiring every Task as a sub-issue of the Epic with database ids; `item-add` every issue to the board — no explicit status edit; the item starts in the project's default column (the Backlog role).
 3. Wire each Task's native `blocked_by` edges from the execution-order table — the graph is the order, nothing else marks it (recipes in the tracker doc).
 4. Move the Epic to the Backlog role — the publisher's column.
@@ -26,11 +26,13 @@ Design-only efforts (decisions, no code) are a single Epic with no step Tasks �
 
 ## Executing — one step at a time
 
-Claim (`Execute #NN`): move the Task → In progress; if the Epic is not already In progress, it moves too; check out the Epic branch `plan/<slug>` — the Epic title, kebab-cased — created at the first claim, where every step commit lands.
+The step's Task is read with the `tasks` tool; `gh` stays for the claim, the close and the as-built comment.
 
-Resume protocol: branch checked out, tree clean, the previous steps' code commits exist (`git log`) and their sub-issues are closed with as-built comments (`gh issue view <n> --comments`) — then implement only that step.
+Claim (`Execute #NN`): move the Task → In progress; if the Epic is not already In progress, it moves too. The Epic branch `plan/<slug>` — the Epic title, kebab-cased — is created at the first claim with `gh issue develop <epic> --name plan/<slug> --checkout`, so it lands on the remote already linked to the Epic issue and the PR opened from it links back on its own; later claims are a plain `git checkout`. Every step commit lands there.
 
-Behavior-changing steps with declared seams are driven by the `tdd` skill: red → green in vertical slices at the declared seams, the single test file after every cycle, the step's full verification at close. Steps without seams follow their Verification directly. Run the step's verification plus Duster before asking for review; there are no mid-step commits — the owner reviews and stages the diff, and that signal is the close signal.
+Resume protocol: branch checked out, tree clean, the previous steps' code commits exist (`git log`) and their sub-issues are closed with as-built comments (read with `tasks read <n>`) — then implement only that step.
+
+Behavior-changing steps with declared seams are driven by the `tdd` skill: red → green in vertical slices at the declared seams, the single test file after every cycle, the step's full verification at close. Steps without seams follow their Verification directly. Run the step's verification plus the project's linter before asking for review; there are no mid-step commits — the owner reviews and stages the diff, and that signal is the close signal.
 
 Step close — on the owner's stage signal:
 
@@ -55,5 +57,5 @@ The frontier is never a column: it is the open Tasks with no live `blocked_by` e
 Every **execution** Epic ends with a close-step Task: the final verification (usually the full suite) and the Definition-of-done audit. Design-only Epics have no steps and take no close step — they close SETTLED on the owner's ratification, as above. A close-step Task's close follows the step-close rule — a code commit when it has code; often it is verification-only and has none — then:
 
 1. push the Epic branch;
-2. open the PR to the base branch — the Epic moves to In review, the only In-review meaning; PR feedback rides PR comments, sub-issues never reopen;
-3. on merge, close the Epic — Done.
+2. open the PR to the base branch — it links to the Epic through the branch's link, and the Epic moves to In review, the only In-review meaning; PR feedback rides PR comments, sub-issues never reopen;
+3. on merge, close the Epic — Done. The link carries the relation, not the close, so this stays an explicit step.
