@@ -7,7 +7,7 @@ description: Plan lifecycle on GitHub — publishing an Epic with its step Task 
 
 A plan is an **Epic issue** on the project board; every plan step is a **Task sub-issue** of its Epic, wired with native `blocked_by` dependency edges. The board is the only planning surface. The conventions — board resolution, Epic and Task body anatomy, gh recipes, linking, the as-built comment, execution mechanics — are authoritative in the tracker doc `tracker-github.md` (beside this skill); this skill is the lifecycle over that model. The tracker doc records no ids: run its resolution block once per session before any board write.
 
-Lifecycle: **Eureka** (discover) → **Planning** (publish the Epic and its step Tasks) → **Executing** (one step at a time) → **Epic close** (close-step Task → PR → merge). One Epic per feature/issue/bug.
+Lifecycle: **Eureka** (discover) → **Planning** (publish the Epic and its step Tasks) → **Executing** (one step at a time) → **Epic close** (close-step Task → PR → merge). One Epic per feature/issue/bug. Every executed issue is an Epic: an ad-hoc issue is promoted first (tracker doc, Promotion).
 
 ## Eureka
 
@@ -28,7 +28,9 @@ Design-only efforts (decisions, no code) are a single Epic with no step Tasks �
 
 The step's Task is read with the `tasks` tool; `gh` stays for the claim, the close and the as-built comment.
 
-Claim (`Execute #NN`): move the Task → In progress; if the Epic is not already In progress, it moves too. The Epic branch `plan/<slug>` — the Epic title, kebab-cased — is created at the first claim with `gh issue develop <epic> --name plan/<slug> --checkout`, so it lands on the remote already linked to the Epic issue and the PR opened from it links back on its own; later claims are a plain `git checkout`. Every step commit lands there.
+The target must be an Epic. `Execute #NN` on an ad-hoc issue stops there: the promotion is drafted, handed to the owner, published on approval, and only then claimed.
+
+Claim (`Execute #NN`): move the Task → In progress; if the Epic is not already In progress, it moves too. The Epic branch `plan/<slug>` — the Epic title, kebab-cased — is created at the first claim, before any code, with `gh issue develop <epic> --name plan/<slug> --checkout`, so it lands on the remote already linked to the Epic issue and the PR opened from it links back on its own; later claims are a plain `git checkout`. Every step commit lands there. A step Task never creates a branch.
 
 Resume protocol: branch checked out, tree clean, the previous steps' code commits exist (`git log`) and their sub-issues are closed with as-built comments (read with `tasks read <n>`) — then implement only that step.
 
@@ -57,5 +59,5 @@ The frontier is never a column: it is the open Tasks with no live `blocked_by` e
 Every **execution** Epic ends with a close-step Task: the final verification (usually the full suite) and the Definition-of-done audit. Design-only Epics have no steps and take no close step — they close SETTLED on the owner's ratification, as above. A close-step Task's close follows the step-close rule — a code commit when it has code; often it is verification-only and has none — then:
 
 1. push the Epic branch;
-2. open the PR to the base branch — it links to the Epic through the branch's link, and the Epic moves to In review, the only In-review meaning; PR feedback rides PR comments, sub-issues never reopen;
+2. open the PR to the base branch — it links to the Epic through the branch's link — or, where the link failed, through the PR body's first line `Epic #NN — …` — and the Epic moves to In review, the only In-review meaning; PR feedback rides PR comments, sub-issues never reopen;
 3. on merge, close the Epic — Done. The link carries the relation, not the close, so this stays an explicit step.
