@@ -48,12 +48,25 @@ Columns matching no role (e.g. archive columns) are unmodeled — the machinery 
 | Type | Meaning |
 |---|---|
 | Epic | a plan |
-| Task | a plan step (sub-issue of its Epic); also the ad-hoc default |
-| Bug / Feature | ad-hoc issues |
+| Task | a plan step (sub-issue of its Epic) — never executable on its own |
+| Bug / Feature | ad-hoc capture; not executable as-is — promote to Epic first |
 | untyped | not machinery |
 
 - Every plan step is a Task sub-issue, always — no checkbox step lists inside an Epic body.
 - Labels play no category role; issue-level Priority applies once an issue is typed.
+
+Every executed issue is an Epic. An ad-hoc issue is promoted before execution (see Promotion below).
+
+### Promotion (ad-hoc → Epic)
+
+An ad-hoc issue (Task, Bug, Feature, untyped) is **not executable**: no Epic owns its branch, no column carries its review, and no one owns its close. Before executing it, it is promoted to Epic:
+
+1. `gh issue edit <N> --type Epic` — number, history and comments stay; nothing is recreated.
+2. The existing body becomes the step Task's Spec; the Epic receives the index anatomy (Goal, Settled decisions, Current state, Execution order, Definition of done, Out of scope).
+3. The step Task is created typed Task, wired as a sub-issue and added to the board.
+4. The owner approves the drafted Epic and Task; only then are they published and claimed.
+
+An `Execute #NN` whose target is not an Epic stops here: the agent drafts the promotion, hands it over and waits.
 
 ## Issue anatomy
 
@@ -109,6 +122,8 @@ gh issue create --title "…" --body-file body.md
 gh issue comment 33 --body-file comment.md
 gh issue edit 32 --body-file body.md
 gh issue close 33 --reason completed
+# promotion — an ad-hoc issue becomes an Epic before execution (keeps number, history, comments)
+gh issue edit 33 --type Epic
 
 # database id — every sub-issue/dependency write takes the REST integer id, never #numbers
 # (GraphQL issue JSON carries the node id I_kwDO…, which the REST endpoints reject)
@@ -169,9 +184,10 @@ Posted on the Task before closing it:
 
 ## Execution mechanics
 
-- Branch per Epic: `plan/<slug>` (Epic title, kebab-cased), created at the **first claim** with `gh issue develop <epic> --name plan/<slug> --checkout` — which creates it on the remote already linked to the Epic issue and checks it out — every step commit lands there. Later claims are a plain `git checkout plan/<slug>`.
+- Branch per Epic: `plan/<slug>` — the Epic title in ASCII kebab-case (lowercase, accents and punctuation stripped: `Motion y textura: Tinta y papel` → `motion-y-textura-tinta-y-papel`), created at the **first claim, before any code**, with `gh issue develop <epic> --name plan/<slug> --checkout` — which creates it on the remote already linked to the Epic issue and checks it out — every step commit lands there. A branch belongs to an Epic only: a step Task never creates one, and a Task with a parent never gets a branch of its own. Later claims are a plain `git checkout plan/<slug>`.
 - The branch is cut from the remote base, not the local one: commits sitting on a local copy ahead of `origin/<base>` do not enter it. Divergence is reported to the owner, never merged in silently.
-- Claim (`Execute #NN`): Task → In progress; create the linked branch if absent, check it out if not. If the Epic is not already In progress, it moves too.
+- Confirm the link after `gh issue develop` with the GraphQL check below. If `linkedBranches` comes back empty (observed in getturno.work), the relation is carried by the PR body's first line `Epic #NN — …` and the mutation is not retried.
+- Claim (`Execute #NN`): the target must be an Epic — promote it first (Promotion above) if it is not. Task → In progress; create the linked branch if absent, check it out if not. If the Epic is not already In progress, it moves too.
 - A code repo with no remote (the config repo) can carry neither a linked branch nor a PR: fall back to `git checkout -b plan/<slug>`, and the Epic closes without one.
 - One Task per executor, in execution order, honoring `blocked_by` edges.
 - Close, on the owner's stage signal: commit the step's code `(#NN)` — a verification-only step skips straight to the as-built comment, which records the no-code outcome → post the as-built comment → close the Task (Done at close) → update the Epic's execution-order row and Definition-of-done items via API writes.
